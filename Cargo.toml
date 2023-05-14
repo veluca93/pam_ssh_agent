@@ -1,0 +1,20 @@
+[package]
+name = "pam_ssh_agent"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.71"
+data-encoding = "2.3.3"
+pamsm = "0.5.2"
+rand = "0.8.5"
+thrussh-keys = { version = "0.22.0", features = ["openssl", "p256"] }
+tokio = { version = "1.28.1", features = ["rt"] }
+
+
+[lib]
+name = "pam_ssh_agent"
+crate-type = ["cdylib"]
+
