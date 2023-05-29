@@ -6,7 +6,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{bail, ensure, Context, Result};
 use data_encoding::BASE64_MIME;
 use pamsm::{Pam, PamError, PamFlags, PamServiceModule};
 
@@ -45,7 +45,12 @@ fn authenticate(args: Vec<String>) -> Result<bool> {
 
     let runtime = Runtime::new()?;
     runtime.block_on(async move {
-        let mut agent = AgentClient::connect_env().await?;
+        let path = std::env::var("SSH_AUTH_SOCK")?;
+        let stream = tokio::net::UnixStream::connect(path).await?;
+        if nix::unistd::getuid().as_raw() != stream.peer_cred()?.uid() {
+            bail!("Trying to use ssh agent of a different user");
+        }
+        let mut agent = AgentClient::connect(stream);
         let agent_ids = agent.request_identities().await?;
         for id in agent_ids {
             if !pubkeys.contains(&id) {
